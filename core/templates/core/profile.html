@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+</head>
+<body>
+    <h1>Profile</h1>
+    
+    <div>
+        <p>Welcome, {{ user.username }}!</p>
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+    
+    <div>
+        <h2>Profile Information</h2>
+        {% if avatar %}
+        <img src="{{ avatar.url }}" alt="Profile avatar" style="max-width: 200px;">
+        {% endif %}
+        
+        <div>
+            <h3>Bio</h3>
+            {% if bio %}
+            <p style="white-space: pre-wrap;">{{ bio }}</p>
+            {% else %}
+            <p>No bio yet.</p>
+            {% endif %}
+        </div>
+        
+        <div>
+            <p>Member since: {{ created_at|date:"F j, Y" }}</p>
+            <p>Last updated: {{ updated_at|date:"F j, Y" }}</p>
+        </div>
+        
+        <a href="{% url 'edit_profile' %}">Edit Profile</a>
+    </div>
+</body>
+</html> 

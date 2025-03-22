@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Profile</title>
+</head>
+<body>
+    <h1>Edit Profile</h1>
+    
+    {% if messages %}
+    <div>
+        {% for message in messages %}
+        <p style="color: {% if message.tags == 'success' %}green{% else %}red{% endif %};">{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div>
+            <label for="avatar">Avatar:</label>
+            {% if avatar %}
+            <img src="{{ avatar.url }}" alt="Current avatar" style="max-width: 200px;">
+            {% endif %}
+            <input type="file" id="avatar" name="avatar" accept="image/*">
+        </div>
+        <div>
+            <label for="bio">Bio:</label>
+            <textarea id="bio" name="bio" rows="4" cols="50">{{ bio }}</textarea>
+        </div>
+        <button type="submit">Update Profile</button>
+        <a href="{% url 'profile' %}">Cancel</a>
+    </form>
+</body>
+</html> 
