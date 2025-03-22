@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .models import Profile
+from .models import Profile, Forum, Message
 import re
 
 # Create your views here.
@@ -70,6 +70,7 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
+    # this section will be done later , cleaer context
     context = {
         'user': request.user,
         'profile': request.user.profile,
@@ -102,3 +103,43 @@ def edit_profile(request):
         'avatar': request.user.profile.avatar,
     }
     return render(request, 'core/edit_profile.html', context)
+
+@login_required
+def create_forum(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        is_private = request.POST.get('is_private') == 'on'
+        
+        if not name or not description:
+            messages.error(request, 'Please fill in all required fields')
+            return render(request, 'core/create_forum.html')
+            
+        forum = Forum.objects.create(
+            name=name,
+            description=description,
+            is_private=is_private,
+            created_by=request.user
+        )
+        forum.members.add(request.user)
+        return redirect('forum_detail', forum_id=forum.id)
+        
+    return render(request, 'core/create_forum.html')
+
+@login_required
+def forum_list(request):
+    forums = Forum.objects.filter(members=request.user)
+    return render(request, 'core/forum_list.html', {'forums': forums})
+
+@login_required
+def forum_detail(request, forum_id):
+    forum = get_object_or_404(Forum, id=forum_id)
+    if request.user not in forum.members.all():
+        messages.error(request, 'You do not have access to this forum')
+        return redirect('forum_list')
+        
+    messages = Message.objects.filter(forum=forum).order_by('-created_at')[:50]
+    return render(request, 'core/forum_detail.html', {
+        'forum': forum,
+        'messages': messages
+    })

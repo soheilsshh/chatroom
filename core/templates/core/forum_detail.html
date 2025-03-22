@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ forum.name }}</title>
+</head>
+<body>
+    <h1>{{ forum.name }}</h1>
+    <p>{{ forum.description }}</p>
+    
+    <div>
+        <a href="{% url 'forum_list' %}">Back to Forums</a>
+    </div>
+    
+    <div id="chat-messages">
+        {% for message in messages %}
+        <div>
+            <strong>{{ message.sender.username }}</strong>: {{ message.content }}
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div>
+        <input type="text" id="chat-message-input">
+        <button id="chat-message-submit">Send</button>
+    </div>
+    
+    <script>
+        const forumId = "{{ forum.id }}";
+        const username = "{{ request.user.username }}";
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + forumId + '/'
+        );
+        
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            const messages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.innerHTML = `<strong>${data.username}</strong>: ${data.message}`;
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        };
+        
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+        
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+        
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            if (message.trim()) {
+                chatSocket.send(JSON.stringify({
+                    'message': message,
+                    'username': username
+                }));
+                messageInputDom.value = '';
+            }
+        };
+    </script>
+</body>
+</html> 

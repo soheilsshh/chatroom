@@ -31,7 +31,10 @@
             <p>Last updated: {{ updated_at|date:"F j, Y" }}</p>
         </div>
         
-        <a href="{% url 'edit_profile' %}">Edit Profile</a>
+        <div>
+            <a href="{% url 'edit_profile' %}">Edit Profile</a>
+            <a href="{% url 'forum_list' %}">My Forums</a>
+        </div>
     </div>
 </body>
 </html> 
