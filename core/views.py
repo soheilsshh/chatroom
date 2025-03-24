@@ -128,16 +128,22 @@ def create_forum(request):
 
 @login_required
 def forum_list(request):
-    forums = Forum.objects.filter(members=request.user)
+    forums = Forum.objects.all()
     return render(request, 'core/forum_list.html', {'forums': forums})
+
+@login_required
+def join_forum(request, forum_id):
+    forum = get_object_or_404(Forum, id=forum_id)
+    if request.user not in forum.members.all():
+        forum.members.add(request.user)
+        messages.success(request, f'Successfully joined {forum.name}')
+    return redirect('forum_detail', forum_id=forum_id)
 
 @login_required
 def forum_detail(request, forum_id):
     forum = get_object_or_404(Forum, id=forum_id)
     if request.user not in forum.members.all():
-        messages.error(request, 'You do not have access to this forum')
-        return redirect('forum_list')
-        
+        forum.members.add(request.user)
     messages = Message.objects.filter(forum=forum).order_by('-created_at')[:50]
     return render(request, 'core/forum_detail.html', {
         'forum': forum,

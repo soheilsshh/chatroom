@@ -4,12 +4,20 @@
     <title>Forums</title>
 </head>
 <body>
-    <h1>Your Forums</h1>
+    <h1>Available Forums</h1>
     
     <div>
         <a href="{% url 'create_forum' %}">Create New Forum</a>
         <a href="{% url 'profile' %}">Back to Profile</a>
     </div>
+    
+    {% if messages %}
+    <div>
+        {% for message in messages %}
+        <p style="color: {% if message.tags == 'success' %}green{% else %}red{% endif %};">{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
     
     {% if forums %}
     <div>
@@ -19,12 +27,16 @@
             <p>{{ forum.description }}</p>
             <p>Created by: {{ forum.created_by.username }}</p>
             <p>Members: {{ forum.members.count }}</p>
-            <a href="{% url 'forum_detail' forum.id %}">Join Chat</a>
+            {% if request.user in forum.members.all %}
+                <a href="{% url 'forum_detail' forum.id %}">Enter Chat</a>
+            {% else %}
+                <a href="{% url 'join_forum' forum.id %}">Join Forum</a>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <p>You haven't joined any forums yet.</p>
+    <p>No forums available yet.</p>
     {% endif %}
 </body>
 </html> 
