@@ -151,3 +151,22 @@ def forum_detail(request, forum_id):
         'messages': messages,
         'online_users': online_users
     })
+
+@login_required
+def private_chat(request, user_id):
+    other_user = get_object_or_404(User, id=user_id)
+    if other_user == request.user:
+        messages.error(request, "You cannot chat with yourself")
+        return redirect('forum_list')
+        
+    # Get previous messages between these users
+    messages = Message.objects.filter(
+        is_private=True,
+        sender__in=[request.user, other_user],
+        recipient__in=[request.user, other_user]
+    ).order_by('created_at')
+    
+    return render(request, 'core/private_chat.html', {
+        'other_user': other_user,
+        'messages': messages
+    })

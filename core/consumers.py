@@ -100,4 +100,67 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender=user,
             forum=forum,
             content=message
+        )
+
+class PrivateChatConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.user = self.scope["user"]
+        self.other_user = self.scope['url_route']['kwargs']['user_id']
+        
+        # Create a unique room name for the private chat
+        self.room_group_name = f'private_chat_{min(self.user.id, self.other_user)}_{max(self.user.id, self.other_user)}'
+
+        # Join room group
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # Leave room group
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        text_data_json = json.loads(text_data)
+        message = text_data_json['message']
+        sender_id = text_data_json['sender_id']
+
+        # Save message to database
+        await self.save_message(sender_id, message)
+
+        # Send message to room group
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'private_message',
+                'message': message,
+                'sender_id': sender_id
+            }
+        )
+
+    async def private_message(self, event):
+        message = event['message']
+        sender_id = event['sender_id']
+
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'message': message,
+            'sender_id': sender_id,
+            'type': 'private_message'
+        }))
+
+    @database_sync_to_async
+    def save_message(self, sender_id, message):
+        sender = User.objects.get(id=sender_id)
+        receiver = User.objects.get(id=self.other_user)
+        Message.objects.create(
+            sender=sender,
+            recipient=receiver,
+            content=message,
+            is_private=True
         ) 

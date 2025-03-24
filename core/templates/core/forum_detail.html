@@ -32,7 +32,7 @@
             <div id="online-users">
                 {% for profile in online_users %}
                 <div class="user-status" data-username="{{ profile.user.username }}">
-                    {{ profile.user.username }} <span class="status-indicator">●</span>
+                    <a href="{% url 'private_chat' profile.user.id %}">{{ profile.user.username }}</a><span class="status-indicator">●</span>
                 </div>
                 {% endfor %}
             </div>

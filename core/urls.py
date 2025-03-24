@@ -11,4 +11,5 @@ urlpatterns = [
     path('forums/create/', views.create_forum, name='create_forum'),
     path('forums/<int:forum_id>/', views.forum_detail, name='forum_detail'),
     path('forums/<int:forum_id>/join/', views.join_forum, name='join_forum'),
+    path('chat/private/<int:user_id>/', views.private_chat, name='private_chat'),
 ] 
