@@ -145,7 +145,9 @@ def forum_detail(request, forum_id):
     if request.user not in forum.members.all():
         forum.members.add(request.user)
     messages = Message.objects.filter(forum=forum).order_by('-created_at')[:50]
+    online_users = Profile.objects.filter(is_online=True, user__in=forum.members.all())
     return render(request, 'core/forum_detail.html', {
         'forum': forum,
-        'messages': messages
+        'messages': messages,
+        'online_users': online_users
     })

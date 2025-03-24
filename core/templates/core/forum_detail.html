@@ -11,17 +11,32 @@
         <a href="{% url 'forum_list' %}">Back to Forums</a>
     </div>
     
-    <div id="chat-messages">
-        {% for message in messages %}
-        <div>
-            <strong>{{ message.sender.username }}</strong>: {{ message.content }}
+    <div style="display: flex;">
+        <div style="flex: 3;">
+            <div id="chat-messages" style="height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                {% for message in messages %}
+                <div>
+                    <strong>{{ message.sender.username }}</strong>: {{ message.content }}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div>
+                <input type="text" id="chat-message-input" style="width: 80%;">
+                <button id="chat-message-submit">Send</button>
+            </div>
         </div>
-        {% endfor %}
-    </div>
-    
-    <div>
-        <input type="text" id="chat-message-input">
-        <button id="chat-message-submit">Send</button>
+        
+        <div style="flex: 1; margin-left: 20px;">
+            <h3>Online Users</h3>
+            <div id="online-users">
+                {% for profile in online_users %}
+                <div class="user-status" data-username="{{ profile.user.username }}">
+                    {{ profile.user.username }} <span class="status-indicator">●</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
     
     <script>
@@ -33,11 +48,31 @@
         
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            const messages = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.innerHTML = `<strong>${data.username}</strong>: ${data.message}`;
-            messages.appendChild(messageDiv);
-            messages.scrollTop = messages.scrollHeight;
+            
+            if (data.type === 'message') {
+                const messages = document.getElementById('chat-messages');
+                const messageDiv = document.createElement('div');
+                messageDiv.innerHTML = `<strong>${data.username}</strong>: ${data.message}`;
+                messages.appendChild(messageDiv);
+                messages.scrollTop = messages.scrollHeight;
+            } else if (data.type === 'status') {
+                const onlineUsers = document.getElementById('online-users');
+                const userDiv = document.querySelector(`.user-status[data-username="${data.username}"]`);
+                
+                if (data.status === 'online') {
+                    if (!userDiv) {
+                        const newUserDiv = document.createElement('div');
+                        newUserDiv.className = 'user-status';
+                        newUserDiv.dataset.username = data.username;
+                        newUserDiv.innerHTML = `${data.username} <span class="status-indicator">●</span>`;
+                        onlineUsers.appendChild(newUserDiv);
+                    }
+                } else {
+                    if (userDiv) {
+                        userDiv.remove();
+                    }
+                }
+            }
         };
         
         chatSocket.onclose = function(e) {

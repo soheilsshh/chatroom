@@ -1,23 +1,50 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import Forum, Message
+from .models import Forum, Message, Profile
 from django.contrib.auth.models import User
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.forum_id = self.scope['url_route']['kwargs']['forum_id']
         self.room_group_name = f'chat_{self.forum_id}'
+        self.user = self.scope["user"]
 
         # Join room group
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
-        print(f"Connected to room group: {self.room_group_name}")
+
+        # Set user as online
+        await self.set_user_online(True)
+        
+        # Notify others that user is online
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'user_status',
+                'username': self.user.username,
+                'status': 'online'
+            }
+        )
+
         await self.accept()
 
     async def disconnect(self, close_code):
+        # Set user as offline
+        await self.set_user_online(False)
+        
+        # Notify others that user is offline
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'user_status',
+                'username': self.user.username,
+                'status': 'offline'
+            }
+        )
+
         # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
@@ -49,8 +76,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'message': message,
-            'username': username
+            'username': username,
+            'type': 'message'
         }))
+
+    async def user_status(self, event):
+        # Send user status to WebSocket
+        await self.send(text_data=json.dumps({
+            'username': event['username'],
+            'status': event['status'],
+            'type': 'status'
+        }))
+
+    @database_sync_to_async
+    def set_user_online(self, status):
+        Profile.objects.filter(user=self.user).update(is_online=status)
 
     @database_sync_to_async
     def save_message(self, username, message):
