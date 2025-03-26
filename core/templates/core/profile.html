@@ -1,40 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Georgia', serif; /* Changed font to Georgia */
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #333;
+            color: #f0f0f0;
+        }
+
+        .profile-container {
+            width: 350px; /* Fixed width for layout */
+            background: none; /* Remove background to not look like a card */
+            border: 2px solid white; /* Add white border */
+            border-radius: 15px; /* Add border-radius for rounded corners */
+            padding: 20px; /* Add padding for content separation */
+            text-align: left; /* Align text to the left */
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #999;
+        }
+
+        .profile-info {
+            margin-bottom: 20px;
+        }
+
+        .profile-info > p,
+        .profile-info > h2 {
+            color: #f0f0f0;
+            margin: 10px 0;
+        }
+
+        img {
+            max-width: 100px; /* Set max width for the avatar */
+            height: 100px; /* Set height for the avatar */
+            border-radius: 50%; /* Make the avatar circular */
+            display: block;
+            margin: 20px 0; /* Align the avatar to the left */
+        }
+
+        /* Button styles */
+        .button {
+            display: inline-block;
+            background-color: red; /* Red background */
+            color: white; /* White text color */
+            padding: 10px 20px; /* Padding for button */
+            border: none; /* No border */
+            border-radius: 25px; /* Circular border radius */
+            text-align: center; /* Center text */
+            text-decoration: none; /* Remove underline */
+            font-weight: bold; /* Bold font */
+            margin-top: 10px; /* Spacing above buttons */
+        }
+
+        .button:hover {
+            background-color: darkred; /* Darker red on hover */
+        }
+
+        @media (max-width: 400px) {
+            .profile-container {
+                width: 100vw; /* Full width on small screens */
+                padding: 10px; /* Less padding for small screens */
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Profile</h1>
-    
-    <div>
-        <p>Welcome, {{ user.username }}!</p>
-        <a href="{% url 'logout' %}">Logout</a>
-    </div>
-    
-    <div>
-        <h2>Profile Information</h2>
-        {% if avatar %}
-        <img src="{{ avatar.url }}" alt="Profile avatar" style="max-width: 200px;">
-        {% endif %}
+    <div class="profile-container">
+        <h1>Profile</h1>
         
-        <div>
-            <h3>Bio</h3>
-            {% if bio %}
-            <p style="white-space: pre-wrap;">{{ bio }}</p>
-            {% else %}
-            <p>No bio yet.</p>
+        <div class="profile-info">
+            <p>Welcome, {{ user.username }}!</p>
+            <a href="{% url 'logout' %}" class="button">Logout</a> <!-- Red button -->
+        </div>
+        
+        <div class="profile-info">
+            <h2>Profile Information</h2>
+            {% if avatar %}
+            <img src="{{ avatar.url }}" alt="Profile avatar">
             {% endif %}
+            
+            <div>
+                <h3>Bio</h3>
+                {% if bio %}
+                <p style="white-space: pre-wrap;">{{ bio }}</p>
+                {% else %}
+                <p>No bio yet.</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <p>Member since: {{ created_at|date:"F j, Y" }}</p>
+                <p>Last updated: {{ updated_at|date:"F j, Y" }}</p>
+            </div>
         </div>
         
         <div>
-            <p>Member since: {{ created_at|date:"F j, Y" }}</p>
-            <p>Last updated: {{ updated_at|date:"F j, Y" }}</p>
-        </div>
-        
-        <div>
-            <a href="{% url 'edit_profile' %}">Edit Profile</a>
-            <a href="{% url 'forum_list' %}">My Forums</a>
+            <a href="{% url 'edit_profile' %}" class="button">Edit Profile</a> <!-- Red button -->
+            <a href="{% url 'forum_list' %}" class="button">My Forums</a> <!-- Red button -->
         </div>
     </div>
 </body>
-</html> 
+</html>
