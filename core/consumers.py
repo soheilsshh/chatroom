@@ -105,9 +105,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 class PrivateChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope["user"]
-        self.other_user = self.scope['url_route']['kwargs']['user_id']
+        self.other_user = int(self.scope['url_route']['kwargs']['user_id'])
         
-        # Create a unique room name for the private chat
         self.room_group_name = f'private_chat_{min(self.user.id, self.other_user)}_{max(self.user.id, self.other_user)}'
 
         # Join room group
